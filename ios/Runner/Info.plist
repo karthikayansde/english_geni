@@ -66,5 +66,64 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+	<key>CFBundleDocumentTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeName</key>
+			<string>Video Files</string>
+			<key>CFBundleTypeRole</key>
+			<string>Viewer</string>
+			<key>LSHandlerRank</key>
+			<string>Owner</string>
+			<key>LSItemContentTypes</key>
+			<array>
+				<string>public.mpeg-4</string>
+				<string>com.apple.quicktime-movie</string>
+				<string>org.matroska.mkv</string>
+				<string>org.webmproject.webm</string>
+			</array>
+		</dict>
+	</array>
+	<key>UTImportedTypeDeclarations</key>
+	<array>
+		<dict>
+			<key>UTTypeIdentifier</key>
+			<string>org.matroska.mkv</string>
+			<key>UTTypeConformsTo</key>
+			<array>
+				<string>public.movie</string>
+			</array>
+			<key>UTTypeDescription</key>
+			<string>Matroska Video File</string>
+			<key>UTTypeTagSpecification</key>
+			<dict>
+				<key>public.filename-extension</key>
+				<array>
+					<string>mkv</string>
+				</array>
+				<key>public.mime-type</key>
+				<string>video/x-matroska</string>
+			</dict>
+		</dict>
+		<dict>
+			<key>UTTypeIdentifier</key>
+			<string>org.webmproject.webm</string>
+			<key>UTTypeConformsTo</key>
+			<array>
+				<string>public.movie</string>
+			</array>
+			<key>UTTypeDescription</key>
+			<string>WebM Video File</string>
+			<key>UTTypeTagSpecification</key>
+			<dict>
+				<key>public.filename-extension</key>
+				<array>
+					<string>webm</string>
+				</array>
+				<key>public.mime-type</key>
+				<string>video/webm</string>
+			</dict>
+		</dict>
+	</array>
 </dict>
 </plist>

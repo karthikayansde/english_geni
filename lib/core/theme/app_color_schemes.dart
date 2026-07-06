@@ -21,78 +21,71 @@ class AppColorSchemes {
 
   AppColorSchemes(this._textTheme);
 
-  // ==========================================
-  // PASTEL MINIMAL LIGHT THEME CONFIGURATION
-  // Matches the exact visual profiles in your images
-  // ==========================================
   ThemeData get light => ThemeData(
     useMaterial3: true,
     brightness: Brightness.light,
     // Soft tint canvas background seen in shared image.jpg
-    scaffoldBackgroundColor: const Color(0xFFF5F5FA),
-    cardColor: Colors.white,
+    scaffoldBackgroundColor: AppColors.lightScaffoldBg,
+    cardColor: AppColors.white,
 
     colorScheme: ColorScheme.light(
       // The core structural anchor components use pure black
-      primary: const Color(0xFF111115),
-      onPrimary: Colors.white,
+      primary: AppColors.lightPrimary,
+      onPrimary: AppColors.white,
 
       // Secondary boundaries map to subtle slate variations
-      secondary: const Color(0xFF6C6E7A),
-      onSecondary: Colors.white,
+      secondary: AppColors.lightSecondary,
+      onSecondary: AppColors.white,
 
-      surface: Colors.white,
-      surfaceDim: const Color(0xFFEAEAF2),
-      surfaceBright: Colors.white,
-      surfaceContainerLowest: Colors.white,
-      surfaceContainerLow: const Color(0xFFF1F1F7),
+      surface: AppColors.white,
+      surfaceDim: AppColors.lightSurfaceDim,
+      surfaceBright: AppColors.white,
+      surfaceContainerLowest: AppColors.white,
+      surfaceContainerLow: AppColors.lightSurfaceContainerLow,
       // Default material container color mapping
-      surfaceContainer: const Color(0xFFEBEBEF),
-      surfaceContainerHigh: const Color(0xFFDCDCE2),
-      surfaceContainerHighest: const Color(0xFFC0C0C6),
+      surfaceContainer: AppColors.lightSurfaceContainer,
+      surfaceContainerHigh: AppColors.lightSurfaceContainerHigh,
+      surfaceContainerHighest: AppColors.lightSurfaceContainerHighest,
 
-      onSurface: const Color(0xFF111115),
-      onSurfaceVariant: const Color(0xFF767986),
-      outline: const Color(0xFFBCBCC6),
-      error: const Color(0xFFBA1A1A),
-      onError: Colors.white,
+      onSurface: AppColors.lightOnSurface,
+      onSurfaceVariant: AppColors.lightOnSurfaceVariant,
+      outline: AppColors.lightOutline,
+      error: AppColors.lightError,
+      onError: AppColors.white,
     ),
     extensions: [_lightPastelExtensions],
     textTheme: _textTheme,
   );
 
-  // ==========================================
-  // PREMIUM CONTRAST DARK THEME CONFIGURATION
-  // ==========================================
   ThemeData get dark => ThemeData(
     useMaterial3: true,
     brightness: Brightness.dark,
-    scaffoldBackgroundColor: const Color(0xFF0D0D11),
-    cardColor: const Color(0xFF1A1A22),
+    scaffoldBackgroundColor: AppColors.darkScaffoldBg,
+    cardColor: AppColors.darkCard,
 
     colorScheme: ColorScheme.dark(
-      primary: Colors.white,
-      onPrimary: const Color(0xFF0D0D11),
+      primary: AppColors.white,
+      onPrimary: AppColors.darkScaffoldBg,
 
-      secondary: const Color(0xFF9094A6),
-      onSecondary: const Color(0xFF0D0D11),
-      tertiary: const Color(0xFFB9BFFF),
-      onTertiary: const Color(0xFF1A1A22),
+      secondary: AppColors.darkSecondary,
+      onSecondary: AppColors.darkScaffoldBg,
+      tertiary: AppColors.darkTertiary,
+      onTertiary: AppColors.darkCard,
 
-      surface: const Color(0xFF14141A),
-      surfaceDim: const Color(0xFF0D0D11),
-      surfaceBright: const Color(0xFF23232F),
-      surfaceContainerLowest: const Color(0xFF050507),
-      surfaceContainerLow: const Color(0xFF171721),
-      surfaceContainer: const Color(0xFF1E1E29),
-      surfaceContainerHigh: const Color(0xFF282837),
-      surfaceContainerHighest: const Color(0xFF333346),
+      surface: AppColors.darkSurface,
+      surfaceDim: AppColors.darkSurfaceDim,
+      surfaceBright: AppColors.darkSurfaceBright,
+      surfaceContainerLowest: AppColors.darkSurfaceContainerLowest,
+      surfaceContainerLow: AppColors.darkSurfaceContainerLow,
+      surfaceContainer: AppColors.darkSurfaceContainer,
+      surfaceContainerHigh: AppColors.darkSurfaceContainerHigh,
+      surfaceContainerHighest: AppColors.darkSurfaceContainerHighest,
 
-      onSurface: const Color(0xFFE4E4ED),
-      onSurfaceVariant: const Color(0xFFC7C7D4),
-      outline: const Color(0xFF464654),
-      error: const Color(0xFFFFB4AB),
-      onError: const Color(0xFF690005),
+      onSurface: AppColors.darkOnSurface,
+      onSurfaceVariant: AppColors.darkOnSurfaceVariant,
+      outline: AppColors.darkOutline,
+      error: AppColors.darkError,
+      onError: AppColors.darkOnError,
     ),
     extensions: [_darkPastelExtensions],
     textTheme: _textTheme,
@@ -103,39 +96,54 @@ class AppColorSchemes {
   List<AppThemeModel> get options => [
     AppThemeModel(
       key: "system",
-      name: appStrings.themeSystem,
+      name: AppStrings.themeSystem,
       mode: ThemeMode.system,
       data: light, // Set light theme as initial baseline presentation reference
     ),
     AppThemeModel(
       key: "light",
-      name: appStrings.themeLight,
+      name: AppStrings.themeLight,
       mode: ThemeMode.light,
       data: light,
     ),
     AppThemeModel(
       key: "dark",
-      name: appStrings.themeDark,
+      name: AppStrings.themeDark,
       mode: ThemeMode.dark,
       data: dark,
     ),
   ];
 
-  // Dedicated feature pastel mappings extracted from shared image.jpg and shared image (3).jpg
   static const _lightPastelExtensions = AppColorsExtension(
-    featureLavender: Color(0xFFCDCEFF), // Used on Top Challenge Card
-    featureOrange: Color(0xFFFFCE9F),   // Used on Yoga / Progress Tracker Card
-    featureMint: Color(0xFFBFF2C8),     // Used on Metric / Calorie Chip
-    featureBlue: Color(0xFFBFE0FF),     // Used on Balance Display Layout
-    featurePink: Color(0xFFFFC0EA),     // Used on Bottom Decorative Grid Content
+    featureLavender: AppColors.lightFeatureLavender, // Used on Top Challenge Card
+    featureOrange: AppColors.lightFeatureOrange,   // Used on Yoga / Progress Tracker Card
+    featureMint: AppColors.lightFeatureMint,     // Used on Metric / Calorie Chip
+    featureBlue: AppColors.lightFeatureBlue,     // Used on Balance Display Layout
+    featurePink: AppColors.lightFeaturePink,     // Used on Bottom Decorative Grid Content
+    featureYellow: AppColors.lightFeatureYellow,
+    featureTeal: AppColors.lightFeatureTeal,
+    featureRose: AppColors.lightFeatureRose,
+    featureSage: AppColors.lightFeatureSage,
+    featurePurple: AppColors.lightFeaturePurple,
+    success: AppColors.successGreen,
+    warning: AppColors.warning,
+    info: AppColors.infoBlue,
   );
 
   static const _darkPastelExtensions = AppColorsExtension(
-    featureLavender: Color(0xFF353659),
-    featureOrange: Color(0xFF543D28),
-    featureMint: Color(0xFF234A2B),
-    featureBlue: Color(0xFF243B52),
-    featurePink: Color(0xFF542544),
+    featureLavender: AppColors.darkFeatureLavender,
+    featureOrange: AppColors.darkFeatureOrange,
+    featureMint: AppColors.darkFeatureMint,
+    featureBlue: AppColors.darkFeatureBlue,
+    featurePink: AppColors.darkFeaturePink,
+    featureYellow: AppColors.darkFeatureYellow,
+    featureTeal: AppColors.darkFeatureTeal,
+    featureRose: AppColors.darkFeatureRose,
+    featureSage: AppColors.darkFeatureSage,
+    featurePurple: AppColors.darkFeaturePurple,
+    success: AppColors.successGreen,
+    warning: AppColors.warning,
+    info: AppColors.infoBlue,
   );
 }
 
@@ -149,6 +157,14 @@ class AppColorsExtension extends ThemeExtension<AppColorsExtension> {
   final Color featureMint;
   final Color featureBlue;
   final Color featurePink;
+  final Color featureYellow;
+  final Color featureTeal;
+  final Color featureRose;
+  final Color featureSage;
+  final Color featurePurple;
+  final Color success;
+  final Color warning;
+  final Color info;
 
   const AppColorsExtension({
     required this.featureLavender,
@@ -156,6 +172,14 @@ class AppColorsExtension extends ThemeExtension<AppColorsExtension> {
     required this.featureMint,
     required this.featureBlue,
     required this.featurePink,
+    required this.featureYellow,
+    required this.featureTeal,
+    required this.featureRose,
+    required this.featureSage,
+    required this.featurePurple,
+    required this.success,
+    required this.warning,
+    required this.info,
   });
 
   @override
@@ -165,6 +189,14 @@ class AppColorsExtension extends ThemeExtension<AppColorsExtension> {
     Color? featureMint,
     Color? featureBlue,
     Color? featurePink,
+    Color? featureYellow,
+    Color? featureTeal,
+    Color? featureRose,
+    Color? featureSage,
+    Color? featurePurple,
+    Color? success,
+    Color? warning,
+    Color? info,
   }) {
     return AppColorsExtension(
       featureLavender: featureLavender ?? this.featureLavender,
@@ -172,6 +204,14 @@ class AppColorsExtension extends ThemeExtension<AppColorsExtension> {
       featureMint: featureMint ?? this.featureMint,
       featureBlue: featureBlue ?? this.featureBlue,
       featurePink: featurePink ?? this.featurePink,
+      featureYellow: featureYellow ?? this.featureYellow,
+      featureTeal: featureTeal ?? this.featureTeal,
+      featureRose: featureRose ?? this.featureRose,
+      featureSage: featureSage ?? this.featureSage,
+      featurePurple: featurePurple ?? this.featurePurple,
+      success: success ?? this.success,
+      warning: warning ?? this.warning,
+      info: info ?? this.info,
     );
   }
 
@@ -184,6 +224,14 @@ class AppColorsExtension extends ThemeExtension<AppColorsExtension> {
       featureMint: Color.lerp(featureMint, other.featureMint, t)!,
       featureBlue: Color.lerp(featureBlue, other.featureBlue, t)!,
       featurePink: Color.lerp(featurePink, other.featurePink, t)!,
+      featureYellow: Color.lerp(featureYellow, other.featureYellow, t)!,
+      featureTeal: Color.lerp(featureTeal, other.featureTeal, t)!,
+      featureRose: Color.lerp(featureRose, other.featureRose, t)!,
+      featureSage: Color.lerp(featureSage, other.featureSage, t)!,
+      featurePurple: Color.lerp(featurePurple, other.featurePurple, t)!,
+      success: Color.lerp(success, other.success, t)!,
+      warning: Color.lerp(warning, other.warning, t)!,
+      info: Color.lerp(info, other.info, t)!,
     );
   }
 }

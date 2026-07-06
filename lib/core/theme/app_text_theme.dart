@@ -14,12 +14,12 @@ class AppTextTheme {
     displayLarge: TextStyle(
       fontFamily: AppAssets.fontHead,
       fontSize: 57,
-      fontWeight: FontWeight.w900, // Maximized for the "Kinetic Gym" energetic hook
-      letterSpacing: -1.0,        // Tighter tracking for extra punch
+      fontWeight: FontWeight.w900,
+      letterSpacing: -1.0,
       height: 1.12,
     ),
 
-    /// Section Hero Title headers (e.g., inside empty "Mirror Lab" states)
+    /// Section Hero Title headers
     displayMedium: TextStyle(
       fontFamily: AppAssets.fontHead,
       fontSize: 45,
@@ -43,25 +43,25 @@ class AppTextTheme {
     /// Core Top App Bar screen titles (e.g., "English Geni" logo typography)
     headlineLarge: TextStyle(
       fontFamily: AppAssets.fontHead,
-      fontSize: 32,
-      fontWeight: FontWeight.w900, // Styled heavy for branding identity
+      fontSize: 24,
+      fontWeight: FontWeight.w800,
       letterSpacing: -0.5,
       height: 1.25,
     ),
 
-    /// Section Title Headers across your 5-Tabs
+    /// Section Title Headers
     headlineMedium: TextStyle(
       fontFamily: AppAssets.fontHead,
-      fontSize: 28,
-      fontWeight: FontWeight.w700,
+      fontSize: 20,
+      fontWeight: FontWeight.w800,
       letterSpacing: 0,
       height: 1.28,
     ),
 
-    /// Minor component header overlays (e.g., "Cinema Hub" video categories)
+    /// Minor component header overlays
     headlineSmall: TextStyle(
       fontFamily: AppAssets.fontHead,
-      fontSize: 24,
+      fontSize: 18,
       fontWeight: FontWeight.w700,
       letterSpacing: 0,
       height: 1.33,
@@ -71,28 +71,28 @@ class AppTextTheme {
     // TITLE STYLES (Cards, List Header Components)
     // ==========================================
 
-    /// Primary Card Header titles (e.g., "Basic training", "Tongue Twister 1")
+    /// Primary Card Header titles
     titleLarge: TextStyle(
       fontFamily: AppAssets.fontHead,
-      fontSize: 22,
-      fontWeight: FontWeight.w700,
+      fontSize: 18,
+      fontWeight: FontWeight.w800,
       letterSpacing: 0,
       height: 1.27,
     ),
 
-    /// Secondary subheadings inside your exercise cards
+    /// Secondary subheadings inside cards / list titles
     titleMedium: TextStyle(
       fontFamily: AppAssets.fontHead,
-      fontSize: 16,
-      fontWeight: FontWeight.w600,
+      fontSize: 15,
+      fontWeight: FontWeight.w700,
       letterSpacing: 0.15,
       height: 1.5,
     ),
 
     /// Small bold text markers inside drill rows
     titleSmall: TextStyle(
-      fontFamily: AppAssets.fontHead, // Kept as fontHead for crisp category labels
-      fontSize: 14,
+      fontFamily: AppAssets.fontHead,
+      fontSize: 13,
       fontWeight: FontWeight.w600,
       letterSpacing: 0.1,
       height: 1.4,
@@ -102,28 +102,30 @@ class AppTextTheme {
     // BODY STYLES (Core Data, Subtitles, News Feeds)
     // ==========================================
 
-    /// CRITICAL FIELD: Core Video Interactive Subtitle Engine UI
-    /// Optimized for the `Wrap` widget to give tap-to-translate tokens vertical spacing clearance.
+    /// CRITICAL FIELD: Core Subtitles or body text
     bodyLarge: TextStyle(
-      fontSize: 16,
-      fontWeight: FontWeight.w500,    // Medium weight holds up better on dark backgrounds
-      letterSpacing: 0.2,
-      height: 1.6,                    // Enhanced vertical line clearance to prevent overlapping touch targets
+      fontFamily: AppAssets.fontHead,
+      fontSize: 14,
+      fontWeight: FontWeight.w500,
+      letterSpacing: 0.1,
+      height: 1.5,
     ),
 
-    /// Regular running informational text blocks or dictionary explanations
+    /// Regular running informational text blocks
     bodyMedium: TextStyle(
-      fontSize: 14,
+      fontFamily: AppAssets.fontHead,
+      fontSize: 12,
       fontWeight: FontWeight.w400,
-      letterSpacing: 0.25,
+      letterSpacing: 0.1,
       height: 1.45,
     ),
 
-    /// Secondary minor informational captions (e.g., video timestamps, flashcard counts)
+    /// Secondary minor informational captions (e.g. metadata)
     bodySmall: TextStyle(
-      fontSize: 12,
+      fontFamily: AppAssets.fontHead,
+      fontSize: 11,
       fontWeight: FontWeight.w400,
-      letterSpacing: 0.4,
+      letterSpacing: 0.1,
       height: 1.33,
     ),
 
@@ -131,11 +133,11 @@ class AppTextTheme {
     // LABEL STYLES (Buttons, Interactive Navigation Items)
     // ==========================================
 
-    /// Core Action Button Labels (e.g., "Login Now ->", "[GET STARTED]")
+    /// Core Action Button Labels
     labelLarge: TextStyle(
-      fontFamily: AppAssets.fontHead, // Montserrat ensures buttons look punchy and athletic
-      fontSize: 14,
-      fontWeight: FontWeight.w800,   // Ultra-bold for quick interactive prioritization
+      fontFamily: AppAssets.fontHead,
+      fontSize: 13,
+      fontWeight: FontWeight.w800,
       letterSpacing: 0.5,
       height: 1.42,
     ),
@@ -143,18 +145,18 @@ class AppTextTheme {
     /// Sub-tab indicator tags / Pill filter configurations
     labelMedium: TextStyle(
       fontFamily: AppAssets.fontHead,
-      fontSize: 12,
+      fontSize: 11,
       fontWeight: FontWeight.w700,
-      letterSpacing: 0.5,
+      letterSpacing: 0.2,
       height: 1.33,
     ),
 
-    /// Tiny informational tags (e.g., "4+ min", "ARTICULATION")
+    /// Tiny informational tags
     labelSmall: TextStyle(
       fontFamily: AppAssets.fontHead,
-      fontSize: 10,                 // dropped slightly to fit tags nicely in micro-containers
-      fontWeight: FontWeight.w800,
-      letterSpacing: 0.8,           // Spaced out for clear readability at micro sizes
+      fontSize: 10,
+      fontWeight: FontWeight.w700,
+      letterSpacing: 0.2,
       height: 1.45,
     ),
   );
