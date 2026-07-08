@@ -24,9 +24,11 @@ import 'features/auth/domain/usecases/change_password_from_profile_usecase.dart'
 import 'features/auth/domain/usecases/update_display_name_usecase.dart';
 import 'features/auth/domain/usecases/soft_delete_account_usecase.dart';
 import 'features/auth/domain/usecases/complete_reactivation_usecase.dart';
+import 'core/services/network_controller.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  NetworkDependencyInjection.init();
   await SupabaseConfig.initialize();
 
   // Register clean architecture global dependencies
@@ -124,6 +126,9 @@ class _MyAppState extends State<MyApp> {
           darkTheme: darkTheme,
           themeMode: themeMode,
           routerConfig: AppRouter.router,
+          builder: (context, child) {
+            return child!;
+          },
         );
       },
     );

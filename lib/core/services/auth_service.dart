@@ -43,6 +43,14 @@ class AuthService extends GetxService {
     required this.completeReactivationUseCase,
   });
 
+  @override
+  void onInit() {
+    super.onInit();
+    if (supabase.auth.currentUser != null) {
+      syncUserProfileToLocalStorage();
+    }
+  }
+
   /// Signs up a new user using displayName, email, and password
   Future<void> signUp({
     required String displayName,

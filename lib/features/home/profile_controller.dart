@@ -10,6 +10,14 @@ class ProfileController extends GetxController {
   final displayName = ''.obs;
   final email = ''.obs;
 
+  @override
+  void onInit() {
+    super.onInit();
+    final storage = Get.find<LocalStorageService>();
+    displayName.value = storage.read<String>('userName') ?? '';
+    email.value = storage.read<String>('userEmail') ?? '';
+  }
+
   Future<void> handleUpdateUsername(String newName) async {
     try {
       isLoading.value = true;

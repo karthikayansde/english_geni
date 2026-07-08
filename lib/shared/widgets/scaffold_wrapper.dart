@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../core/utils/u_device_helper.dart';
 
 typedef ScaffoldWrapperBuilder = Widget Function(
     BuildContext context,
@@ -12,6 +13,7 @@ class ScaffoldWrapper extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    UDeviceHelper.setStatusBarColor(context);
     return builder(
       context,
       theme,

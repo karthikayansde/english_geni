@@ -21,172 +21,168 @@ class ProgressTab extends StatelessWidget {
         final styles = AppTextStyles(textStyle, colors);
         final ext = theme.extension<AppColorsExtension>()!;
 
-        return Scaffold(
-          backgroundColor: theme.scaffoldBackgroundColor,
-          appBar: AppBar(
-            backgroundColor: theme.scaffoldBackgroundColor,
-            elevation: 0,
-            title: Text("Performance Vault", style: styles.homeHeadline),
-            centerTitle: false,
-            actions: [
-              // Premium indicator toggler (Clickable for ease of testing / grading paywall UI!)
-              Obx(() => TextButton.icon(
-                    onPressed: () => controller.togglePremium(),
-                    icon: Icon(
-                      controller.isPremium.value ? Icons.verified_user_rounded : Icons.lock_open_rounded,
-                      color: colors.primary,
-                      size: 16,
-                    ),
-                    label: Text(
-                      controller.isPremium.value ? "PRO UNLOCKED" : "GO PREMIUM",
-                      style: TextStyle(
-                        color: colors.primary,
-                        fontSize: 11,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 0.8,
-                      ),
-                    ),
-                  )),
-              const SizedBox(width: 8),
-            ],
+        return Padding(
+          padding: const EdgeInsets.fromLTRB(
+            AppDimensions.scaffoldPaddingHorizontal,
+            8,
+            AppDimensions.scaffoldPaddingHorizontal,
+            0,
           ),
-          body: SafeArea(
-            bottom: false,
-            child: ListView(
-              physics: const AlwaysScrollableScrollPhysics(),
-              padding: const EdgeInsets.fromLTRB(
-                AppDimensions.scaffoldPaddingHorizontal,
-                8,
-                AppDimensions.scaffoldPaddingHorizontal,
-                120, // offset bottom navigation bar overlay
+          child: Column(
+            children: [
+              // 1. Header Titles
+              Padding(
+                padding: const EdgeInsets.fromLTRB(
+                  0,
+                  20,
+                  0,
+                  12,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text("Performance Vault", style: styles.homeHeadline),
+                    const SizedBox(height: 4),
+                    Text(
+                      "Train your vocabulary, reading, and listening capabilities",
+                      style: styles.homeCardBodyMuted,
+                    ),
+                  ],
+                ),
               ),
-              children: [
-                // 1. Paginated Header Navigation and Toggle Mode
-                _buildPaginatedHeader(context, colors, styles, controller),
-                const SizedBox(height: 20),
-
-                // 2. Consistency Matrix Heatmap
-                _buildConsistencyMatrix(colors, styles, controller),
-                const SizedBox(height: 24),
-
-                // 3. Premium Paywalled Charts Section
-                Obx(() {
-                  final isPro = controller.isPremium.value;
-
-                  return Stack(
-                    children: [
-                      // Sub-list of charts (always rendered underneath)
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
+              Expanded(
+                child: ListView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: const EdgeInsets.only(bottom: 120),
+                  children: [
+                    // 1. Paginated Header Navigation and Toggle Mode
+                    _buildPaginatedHeader(context, colors, styles, controller),
+                    const SizedBox(height: 20),
+                
+                    // 2. Consistency Matrix Heatmap
+                    _buildConsistencyMatrix(colors, styles, controller),
+                    const SizedBox(height: 24),
+                
+                    // 3. Premium Paywalled Charts Section
+                    Obx(() {
+                      final isPro = controller.isPremium.value;
+                
+                      return Stack(
                         children: [
-                          _buildFluencyWpmCard(colors, styles, controller),
-                          const SizedBox(height: 20),
-                          _buildActivityBarCard(colors, ext, styles, controller),
-                          const SizedBox(height: 20),
-                          _buildSkillRadarCard(colors, styles, controller),
-                        ],
-                      ),
-
-                      // Paywall Overlay
-                      if (!isPro)
-                        Positioned.fill(
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(28),
-                            child: Stack(
-                              children: [
-                                // Blur filter
-                                Positioned.fill(
-                                  child: BackdropFilter(
-                                    filter: ImageFilter.blur(sigmaX: 5.0, sigmaY: 5.0),
-                                    child: Container(
-                                      color: colors.surfaceContainerHighest.withOpacity(0.5),
-                                    ),
-                                  ),
-                                ),
-
-                                // Paywall CTA card
-                                Center(
-                                  child: Container(
-                                    margin: const EdgeInsets.symmetric(horizontal: 24),
-                                    padding: const EdgeInsets.all(24),
-                                    decoration: BoxDecoration(
-                                      color: colors.surfaceContainerLow,
-                                      borderRadius: BorderRadius.circular(24),
-                                      border: Border.all(
-                                        color: colors.outlineVariant.withOpacity(0.3),
-                                        width: 1.5,
-                                      ),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: Colors.black.withOpacity(0.12),
-                                          blurRadius: 20,
-                                          offset: const Offset(0, 8),
-                                        ),
-                                      ],
-                                    ),
-                                    child: Column(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Container(
-                                          padding: const EdgeInsets.all(12),
-                                          decoration: BoxDecoration(
-                                            color: colors.primary.withOpacity(0.12),
-                                            shape: BoxShape.circle,
-                                          ),
-                                          child: Icon(
-                                            Icons.analytics_rounded,
-                                            size: 32,
-                                            color: colors.primary,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 16),
-                                        Text(
-                                          "Unlock Premium Analytics",
-                                          style: TextStyle(
-                                            fontSize: 18,
-                                            fontWeight: FontWeight.bold,
-                                            color: colors.onSurface,
-                                          ),
-                                          textAlign: TextAlign.center,
-                                        ),
-                                        const SizedBox(height: 8),
-                                        Text(
-                                          "Unlock detailed speech velocity, skill radar models, and accent assessments.",
-                                          style: TextStyle(
-                                            fontSize: 13,
-                                            color: colors.onSurfaceVariant,
-                                          ),
-                                          textAlign: TextAlign.center,
-                                        ),
-                                        const SizedBox(height: 20),
-                                        ElevatedButton(
-                                          onPressed: () => controller.togglePremium(),
-                                          style: ElevatedButton.styleFrom(
-                                            backgroundColor: colors.primary,
-                                            foregroundColor: colors.onPrimary,
-                                            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                                            shape: RoundedRectangleBorder(
-                                              borderRadius: BorderRadius.circular(16),
-                                            ),
-                                          ),
-                                          child: const Text(
-                                            "Unlock Now",
-                                            style: TextStyle(fontWeight: FontWeight.bold),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
+                          // Sub-list of charts (always rendered underneath)
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              _buildFluencyWpmCard(colors, styles, controller),
+                              const SizedBox(height: 20),
+                              _buildActivityBarCard(colors, ext, styles, controller),
+                              const SizedBox(height: 20),
+                              _buildSkillRadarCard(colors, styles, controller),
+                            ],
                           ),
-                        ),
-                    ],
-                  );
-                }),
-              ],
-            ),
+                
+                          // Paywall Overlay
+                          if (!isPro)
+                            Positioned.fill(
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(28),
+                                child: Stack(
+                                  children: [
+                                    // Blur filter
+                                    Positioned.fill(
+                                      child: BackdropFilter(
+                                        filter: ImageFilter.blur(sigmaX: 5.0, sigmaY: 5.0),
+                                        child: Container(
+                                          color: colors.surfaceContainerHighest.withOpacity(0.5),
+                                        ),
+                                      ),
+                                    ),
+                
+                                    // Paywall CTA card
+                                    Center(
+                                      child: Container(
+                                        margin: const EdgeInsets.symmetric(horizontal: 24),
+                                        padding: const EdgeInsets.all(24),
+                                        decoration: BoxDecoration(
+                                          color: colors.surfaceContainerLow,
+                                          borderRadius: BorderRadius.circular(24),
+                                          border: Border.all(
+                                            color: colors.outlineVariant.withOpacity(0.3),
+                                            width: 1.5,
+                                          ),
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: Colors.black.withOpacity(0.12),
+                                              blurRadius: 20,
+                                              offset: const Offset(0, 8),
+                                            ),
+                                          ],
+                                        ),
+                                        child: Column(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Container(
+                                              padding: const EdgeInsets.all(12),
+                                              decoration: BoxDecoration(
+                                                color: colors.primary.withOpacity(0.12),
+                                                shape: BoxShape.circle,
+                                              ),
+                                              child: Icon(
+                                                Icons.analytics_rounded,
+                                                size: 32,
+                                                color: colors.primary,
+                                              ),
+                                            ),
+                                            const SizedBox(height: 16),
+                                            Text(
+                                              "Unlock Premium Analytics",
+                                              style: TextStyle(
+                                                fontSize: 18,
+                                                fontWeight: FontWeight.bold,
+                                                color: colors.onSurface,
+                                              ),
+                                              textAlign: TextAlign.center,
+                                            ),
+                                            const SizedBox(height: 8),
+                                            Text(
+                                              "Unlock detailed speech velocity, skill radar models, and accent assessments.",
+                                              style: TextStyle(
+                                                fontSize: 13,
+                                                color: colors.onSurfaceVariant,
+                                              ),
+                                              textAlign: TextAlign.center,
+                                            ),
+                                            const SizedBox(height: 20),
+                                            ElevatedButton(
+                                              onPressed: () => controller.togglePremium(),
+                                              style: ElevatedButton.styleFrom(
+                                                backgroundColor: colors.primary,
+                                                foregroundColor: colors.onPrimary,
+                                                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                                                shape: RoundedRectangleBorder(
+                                                  borderRadius: BorderRadius.circular(16),
+                                                ),
+                                              ),
+                                              child: const Text(
+                                                "Unlock Now",
+                                                style: TextStyle(fontWeight: FontWeight.bold),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                        ],
+                      );
+                    }),
+                  ],
+                ),
+              ),
+            ],
           ),
         );
       },

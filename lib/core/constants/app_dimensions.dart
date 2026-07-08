@@ -4,6 +4,8 @@ class AppDimensions {
   static const AppDimensions instance = AppDimensions._();
 
   // Static constants
+  // Padding and margin sizes
+  static const double xxs = 2.0;
   static const double xs = 4.0;
   static const double sm = 8.0;
   static const double md = 12.0;
@@ -20,6 +22,7 @@ class AppDimensions {
   static const double radiusLg = 16.0;
   static const double radiusFull = 30.0;
 
+  static const double iconXs = 12.0;
   static const double iconSm = 16.0;
   static const double iconMd = 24.0;
   static const double iconLg = 32.0;
@@ -34,34 +37,51 @@ class AppDimensions {
   static const double logoSize = 80.0;
   static const double formMaxWidth = 400.0;
 
-  // Instance Getters (to allow access via wrapper instance param)
-  double get valXs => xs;
-  double get valSm => sm;
-  double get valMd => md;
-  double get valLg => lg;
-  double get valXl => xl;
-  double get valXxl => xxl;
-  double get valXxxl => xxxl;
-  double get valHuge => huge;
-  double get valGiant => giant;
-  double get valColossal => colossal;
+  // Font sizes
+  static const double fontSizeSm = 14.0; // small
+  static const double fontSizeMd = 16.0; // medium
+  static const double fontSizeLg = 18.0; // large
 
-  double get radSm => radiusSm;
-  double get radMd => radiusMd;
-  double get radLg => radiusLg;
-  double get radFull => radiusFull;
+  // Button sizes
+  static const double buttonRadius = 12.0;
+  static const double buttonWidth = 120.0;
+  static const double searchBarHeight = 50.0;
 
-  double get icSm => iconSm;
-  double get icMd => iconMd;
-  double get icLg => iconLg;
-  double get icXl => iconXl;
+  // AppBar height
+  static const double appBarHeight = 56.0;
 
-  double get btnHeight => buttonHeight;
-  double get btnHeightLg => buttonHeightLarge;
+  // Default spacing between sections
+  static const double defaultSpace = 24.0;
+  static const double spaceBtwItems = 16.0;
+  static const double spaceBtwSections = 32.0;
 
-  double get padHorizontal => scaffoldPaddingHorizontal;
-  double get padVertical => scaffoldPaddingVertical;
+  // Border radius
+  static const double borderRadiusSm = 4.0;
+  static const double borderRadiusMd = 8.0;
+  static const double borderRadiusLg = 12.0;
 
-  double get sizeLogo => logoSize;
-  double get maxWidthForm => formMaxWidth;
+  // Product item dimensions
+  static const double productImageRadius = 16.0;
+
+  // Input field
+  static const double inputFieldRadius = 12.0;
+  static const double spaceBtwInputFields = 16.0;
+
+  // Card sizes
+  static const double cardRadiusLg = 16.0;
+  static const double cardRadiusMd = 12.0;
+  static const double cardRadiusSm = 10.0;
+  static const double cardRadiusXs = 6.0;
+
+  // Grid view spacing
+  static const double gridViewSpacing = 16.0;
+
+  // Card Sizes
+  static const double homePrimaryHeaderHeight = 320.0; // 320
+  static const double storePrimaryHeaderHeight = 170.0; // 170
+  static const double profilePrimaryHeaderHeight = 170.0; // 170
+
+  static const double brandCardWidth = 170.0; // 170
+  static const double brandCardHeight = 70.0; // 70
+
 }

@@ -1,3 +1,4 @@
+import 'package:english_geni/core/services/network_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../../core/constants/app_dimensions.dart';
@@ -49,29 +50,34 @@ class _HomeScreenState extends State<HomeScreen> {
 
         return Scaffold(
           backgroundColor: theme.scaffoldBackgroundColor,
-          body: Stack(
-            alignment: AlignmentGeometry.center,
-            children: [
-              PageView(
-                controller: _pageController,
-                physics: const AlwaysScrollableScrollPhysics(),
-                onPageChanged: (index) {
-                  setState(() {
-                    _currentIndex = index;
-                  });
-                },
-                children: const [
-                  HomeTab(),
-                  PracticeTab(),
-                  ProgressTab(),
-                  ProfileTab(),
-                ],
-              ),
-              Positioned(
-                bottom: 24,
-                child: _buildFloatingNavBar(context, colors, isDark),
-              ),
-            ],
+          body: SafeArea(
+            bottom: false,
+            child: Stack(
+              alignment: AlignmentGeometry.center,
+              children: [
+                InternetWrapper(
+                  child: PageView(
+                    controller: _pageController,
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    onPageChanged: (index) {
+                      setState(() {
+                        _currentIndex = index;
+                      });
+                    },
+                    children: const [
+                      HomeTab(),
+                      PracticeTab(),
+                      ProgressTab(),
+                      ProfileTab(),
+                    ],
+                  ),
+                ),
+                Positioned(
+                  bottom: 24,
+                  child: _buildFloatingNavBar(context, colors, isDark),
+                ),
+              ],
+            ),
           ),
         );
       },

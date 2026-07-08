@@ -5,6 +5,7 @@ import '../../features/auth/login_screen.dart';
 import '../../features/auth/signup_screen.dart';
 import '../../features/auth/forgot_password_screen.dart';
 import '../../features/home/home_screen.dart';
+import '../../features/video_player/video_player_screen.dart';
 import '../services/smart_dialogs.dart';
 import '../services/local_storage_service.dart';
 import 'route_names.dart';
@@ -54,7 +55,56 @@ class AppRouter {
     navigatorKey: navigatorKey,
     initialLocation: initialRoute,
     debugLogDiagnostics: true,
+    errorBuilder: (context, state) {
+      final location = state.uri.toString();
+      final lowercaseLocation = location.toLowerCase();
+      final hasVideoExtension = lowercaseLocation.contains('.mkv') || 
+                                lowercaseLocation.contains('.mp4') || 
+                                lowercaseLocation.contains('.avi') || 
+                                lowercaseLocation.contains('.mov') || 
+                                lowercaseLocation.contains('.3gp') || 
+                                lowercaseLocation.contains('.webm');
+
+      // If it is a platform file path / content intent, redirect to the video player
+      if (location.startsWith('content://') || 
+          location.startsWith('file://') || 
+          state.uri.scheme == 'content' ||
+          state.uri.scheme == 'file' ||
+          hasVideoExtension) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          router.go(
+            Uri(
+              path: RouteNames.videoPlayer,
+              queryParameters: {'path': location},
+            ).toString(),
+          );
+        });
+        return const Scaffold(
+          body: Center(
+            child: CircularProgressIndicator(),
+          ),
+        );
+      }
+
+      // Default error screen
+      return Scaffold(
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Text(
+              "Route not found:\n${state.error}",
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+          ),
+        ),
+      );
+    },
     routes: [
+      GoRoute(
+        path: '/',
+        redirect: (context, state) => initialRoute,
+      ),
       GoRoute(
         path: RouteNames.login,
         pageBuilder: (context, state) => AppTransitions.fadeIn(
@@ -89,35 +139,4 @@ class AppRouter {
       ),
     ],
   );
-}
-
-
-
-class VideoPlayerScreen extends StatelessWidget {
-  final String videoPath;
-  const VideoPlayerScreen({super.key, required this.videoPath});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text("Video Player")),
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(Icons.play_circle_fill, size: 80, color: Colors.blue),
-              const SizedBox(height: 20),
-              Text(
-                "Playing Video From Path:\n$videoPath",
-                textAlign: TextAlign.center,
-                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
 }
