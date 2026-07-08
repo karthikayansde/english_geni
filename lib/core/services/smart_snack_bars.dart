@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import '../constants/app_colors.dart';
 
 enum NotificationType { success, error, warning, info }
@@ -15,6 +16,16 @@ class SmartSnackBars {
     VoidCallback? onAction,
     Duration duration = const Duration(seconds: 3),
   }) {
+    if (Get.context != null) {
+      showOverlay(
+        Get.context!,
+        message: message,
+        type: type,
+        duration: duration,
+      );
+      return;
+    }
+
     final messenger = messengerKey.currentState;
 
     // Clear any existing snackbars immediately

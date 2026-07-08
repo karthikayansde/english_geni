@@ -79,7 +79,8 @@ class SmartDialogs {
             if (_lastLoadingBackPress == null || 
                 now.difference(_lastLoadingBackPress!) > const Duration(seconds: 2)) {
               _lastLoadingBackPress = now;
-              SmartSnackBars.show(
+              SmartSnackBars.showOverlay(
+                _context!,
                 message: 'Please wait for the process to complete',
                 type: NotificationType.info,
                 duration: const Duration(seconds: 2),

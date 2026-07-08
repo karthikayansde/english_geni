@@ -1,4 +1,6 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 import '../../core/constants/app_dimensions.dart';
 import '../../core/constants/app_strings.dart';
@@ -7,54 +9,24 @@ import '../../shared/widgets/scaffold_wrapper.dart';
 import '../../shared/widgets/smart_pop_scope.dart';
 import '../../shared/widgets/smart_form_fields/smart_form.dart';
 import '../../shared/widgets/smart_form_fields/field_config.dart';
+import '../../shared/widgets/smart_form_fields/app_fields.dart';
 import '../../shared/widgets/top_head_image.dart';
+import '../../core/services/auth_service.dart';
+import '../../core/services/smart_dialogs.dart';
+import '../../core/services/smart_snack_bars.dart';
+import '../../core/routes/route_names.dart';
 import 'login_screen.dart';
+import '../../shared/widgets/otp_dialog.dart';
+import 'package:get/get.dart';
+import 'presentation/controllers/auth_controller.dart';
 
 class SignUpForm extends SmartForm {
   @override
   Map<String, FieldConfig> get configs => {
-        'name': FieldConfig.text(
-          key: 'name',
-          label: AppStrings.fieldName,
-          required: true,
-          validationMessages: {
-            ValidationMessage.required: (_) => AppStrings.valRequiredName,
-          },
-        ),
-        'email': FieldConfig.text(
-          key: 'email',
-          label: AppStrings.fieldGmail,
-          keyboardType: TextInputType.emailAddress,
-          required: true,
-          validators: [Validators.email],
-          validationMessages: {
-            ValidationMessage.required: (_) => AppStrings.valRequiredGmail,
-            ValidationMessage.email: (_) => AppStrings.valInvalidGmail,
-          },
-        ),
-        'password': FieldConfig.text(
-          key: 'password',
-          label: AppStrings.fieldPassword,
-          isPasswordField: true,
-          required: true,
-          maxLines: 1,
-          validators: [Validators.minLength(6)],
-          validationMessages: {
-            ValidationMessage.required: (_) => AppStrings.valRequiredPassword,
-            ValidationMessage.minLength: (_) => AppStrings.valMinLengthPassword,
-          },
-        ),
-        'confirmPassword': FieldConfig.text(
-          key: 'confirmPassword',
-          label: AppStrings.fieldConfirmPassword,
-          isPasswordField: true,
-          required: true,
-          maxLines: 1,
-          validationMessages: {
-            ValidationMessage.required: (_) => AppStrings.valRequiredConfirmPassword,
-            'mustMatch': (_) => AppStrings.valPasswordMismatch,
-          },
-        ),
+        'name': AppFields.name(),
+        'email': AppFields.email(),
+        'password': AppFields.password(),
+        'confirmPassword': AppFields.confirmPassword(),
       };
 
   @override
@@ -94,6 +66,7 @@ class SignUpScreen extends StatefulWidget {
 
 class _SignUpScreenState extends State<SignUpScreen> {
   final SignUpForm _signUpForm = SignUpForm();
+  final _authController = Get.put(AuthController());
 
   @override
   void initState() {
@@ -168,8 +141,68 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                       elevation: 0,
                                     ),
                                     onPressed: form.valid
-                                        ? () {
-                                            // Perform registration / OTP trigger from supabase auth
+                                        ? () async {
+                                            final name = form.control('name').value as String;
+                                            final email = form.control('email').value as String;
+                                            final password = form.control('password').value as String;
+
+                                            await _authController.handleSignup(
+                                              context,
+                                              displayName: name,
+                                              email: email,
+                                              password: password,
+                                              onReactivated: () {
+                                                if (mounted) {
+                                                  context.go(RouteNames.home);
+                                                }
+                                              },
+                                              onReactivationRequired: () async {
+                                                SmartSnackBars.showOverlay(
+                                                  context,
+                                                  message: 'We found your previous account. Enter the OTP sent to your email to reactivate it.',
+                                                  type: NotificationType.success,
+                                                );
+
+                                                // Show OTP Dialog for recovery/reactivation
+                                                final verified = await OtpDialog.show(
+                                                  context,
+                                                  email: email,
+                                                  onVerify: (otp) => AuthService.to.completeReactivation(
+                                                    email: email,
+                                                    token: otp,
+                                                    newPassword: password,
+                                                    displayName: name,
+                                                  ),
+                                                  onResend: () => AuthService.to.sendPasswordResetEmail(email),
+                                                );
+
+                                                if (verified == true && mounted) {
+                                                  context.go(RouteNames.home);
+                                                }
+                                              },
+                                              onVerificationRequired: () async {
+                                                SmartSnackBars.showOverlay(
+                                                  context,
+                                                  message: 'OTP verification code sent to your email!',
+                                                  type: NotificationType.success,
+                                                );
+
+                                                // Show OTP Dialog
+                                                final verified = await OtpDialog.show(
+                                                  context,
+                                                  email: email,
+                                                  onVerify: (otp) => AuthService.to.verifySignupOtp(
+                                                    email: email,
+                                                    token: otp,
+                                                  ),
+                                                  onResend: () => AuthService.to.resendSignupOtp(email),
+                                                );
+
+                                                if (verified == true && mounted) {
+                                                  context.go(RouteNames.home);
+                                                }
+                                              },
+                                            );
                                           }
                                         : () {
                                             _signUpForm.markAllTouched();

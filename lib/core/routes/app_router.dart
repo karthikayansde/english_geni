@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:go_router/go_router.dart';
 import '../../features/auth/login_screen.dart';
 import '../../features/auth/signup_screen.dart';
 import '../../features/auth/forgot_password_screen.dart';
 import '../../features/home/home_screen.dart';
 import '../services/smart_dialogs.dart';
+import '../services/local_storage_service.dart';
 import 'route_names.dart';
 
 class AppTransitions {
@@ -38,9 +40,19 @@ class AppTransitions {
 class AppRouter {
   static GlobalKey<NavigatorState> get navigatorKey => SmartDialogs.navigatorKey;
 
+  static String get initialRoute {
+    try {
+      final storage = Get.find<LocalStorageService>();
+      final bool isLoggedIn = storage.read<bool>('isLoggedIn') ?? false;
+      return isLoggedIn ? RouteNames.home : RouteNames.login;
+    } catch (_) {
+      return RouteNames.login;
+    }
+  }
+
   static final GoRouter router = GoRouter(
     navigatorKey: navigatorKey,
-    initialLocation: RouteNames.login,
+    initialLocation: initialRoute,
     debugLogDiagnostics: true,
     routes: [
       GoRoute(

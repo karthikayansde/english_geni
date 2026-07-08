@@ -7,38 +7,21 @@ import '../../shared/widgets/scaffold_wrapper.dart';
 import '../../shared/widgets/smart_pop_scope.dart';
 import '../../shared/widgets/smart_form_fields/smart_form.dart';
 import '../../shared/widgets/smart_form_fields/field_config.dart';
+import '../../shared/widgets/smart_form_fields/app_fields.dart';
 import '../../shared/widgets/top_head_image.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/routes/route_names.dart';
 import 'signup_screen.dart';
 import 'forgot_password_screen.dart';
+import '../../core/services/auth_service.dart';
+import '../../core/services/smart_dialogs.dart';
+import '../../core/services/smart_snack_bars.dart';
 
 class LoginForm extends SmartForm {
   @override
   Map<String, FieldConfig> get configs => {
-        'email': FieldConfig.text(
-          key: 'email',
-          label: AppStrings.fieldGmail,
-          keyboardType: TextInputType.emailAddress,
-          required: true,
-          validators: [Validators.email],
-          validationMessages: {
-            ValidationMessage.required: (_) => AppStrings.valRequiredGmail,
-            ValidationMessage.email: (_) => AppStrings.valInvalidGmail,
-          },
-        ),
-        'password': FieldConfig.text(
-          key: 'password',
-          label: AppStrings.fieldPassword,
-          isPasswordField: true,
-          required: true,
-          maxLines: 1,
-          validators: [Validators.minLength(6)],
-          validationMessages: {
-            ValidationMessage.required: (_) => AppStrings.valRequiredPassword,
-            ValidationMessage.minLength: (_) => AppStrings.valMinLengthPassword,
-          },
-        ),
+        'email': AppFields.email(),
+        'password': AppFields.password(),
       };
 }
 
@@ -136,8 +119,37 @@ class _LoginScreenState extends State<LoginScreen> {
                                       elevation: 0,
                                     ),
                                     onPressed: form.valid
-                                        ? () {
-                                            // Perform sign in action
+                                        ? () async {
+                                            try {
+                                              SmartDialogs.showLoading();
+                                              
+                                              final email = form.control('email').value as String;
+                                              final password = form.control('password').value as String;
+
+                                              await AuthService.to.signIn(
+                                                email: email,
+                                                password: password,
+                                              );
+
+                                              if (mounted) Navigator.of(context).pop(); // dismiss loading
+
+                                              SmartSnackBars.showOverlay(
+                                                context,
+                                                message: 'Logged in successfully!',
+                                                type: NotificationType.success,
+                                              );
+
+                                              if (mounted) {
+                                                context.go(RouteNames.home);
+                                              }
+                                            } catch (e) {
+                                              if (mounted) Navigator.of(context).pop(); // dismiss loading
+                                              SmartSnackBars.showOverlay(
+                                                context,
+                                                message: e.toString().replaceAll('Exception: ', ''),
+                                                type: NotificationType.error,
+                                              );
+                                            }
                                           }
                                         : () {
                                             _loginForm.markAllTouched();
@@ -174,15 +186,6 @@ class _LoginScreenState extends State<LoginScreen> {
                               ),
                             ),
                           ],
-                        ),
-                        TextButton(
-                          onPressed: () {
-                            context.go(RouteNames.home);
-                          },
-                          child: Text(
-                            AppStrings.loginBypassBtn,
-                            style: styles.actionLinkUnderlined,
-                          ),
                         ),
                         const SizedBox(height: AppDimensions.xxl),
                       ],

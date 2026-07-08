@@ -1,12 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 import '../../core/constants/app_dimensions.dart';
 import '../../core/constants/app_assets.dart';
+import '../../core/services/local_storage_service.dart';
 import '../../core/theme/app_color_schemes.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../core/theme/app_theme.dart';
 import '../../shared/widgets/scaffold_wrapper.dart';
 import '../../shared/widgets/smart_form_fields/smart_dropdown.dart';
+import '../../core/services/auth_service.dart';
+import '../../core/services/smart_dialogs.dart';
+import '../../core/routes/route_names.dart';
+import 'package:get/get.dart';
+import 'profile_controller.dart';
 import 'profile_dialogs.dart';
 
 class ProfileTab extends StatefulWidget {
@@ -18,6 +25,7 @@ class ProfileTab extends StatefulWidget {
 
 class _ProfileTabState extends State<ProfileTab> {
   late FormGroup _form;
+  final controller = Get.put(ProfileController());
 
   @override
   void initState() {
@@ -92,17 +100,21 @@ class _ProfileTabState extends State<ProfileTab> {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text("Sandra Glam", overflow: TextOverflow.ellipsis, style: styles.profileNameBold),
+                                  Obx(() => Text(
+                                        controller.displayName.value.isEmpty ? "No Name" : controller.displayName.value,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: styles.profileNameBold,
+                                      )),
                                   const SizedBox(height: 4),
-                                  Text(
-                                    "karthikayansde@gmail.com",
-                                    overflow: TextOverflow.ellipsis,
-                                    style: TextStyle(
-                                      color: colors.onSurfaceVariant.withOpacity(0.65),
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
+                                  Obx(() => Text(
+                                        controller.email.value,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: TextStyle(
+                                          color: colors.onSurfaceVariant.withOpacity(0.65),
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      )),
                                 ],
                               ),
                             ),
@@ -265,7 +277,20 @@ class _ProfileTabState extends State<ProfileTab> {
                               colors: colors,
                               styles: styles,
                               overrideColor: colors.error,
-                              onTap: () {},
+                              onTap: () async {
+                                final confirm = await SmartDialogs.showConfirmation(
+                                  title: 'Logout',
+                                  message: 'Are you sure you want to sign out of your account?',
+                                  buttonText: 'Logout',
+                                  buttonColor: colors.error,
+                                );
+                                if (confirm == true) {
+                                  await AuthService.to.signOut();
+                                  if (context.mounted) {
+                                    context.go(RouteNames.login);
+                                  }
+                                }
+                              },
                             ),
                             _buildSettingsRow(
                               title: "Delete Profile",
@@ -275,7 +300,23 @@ class _ProfileTabState extends State<ProfileTab> {
                               styles: styles,
                               overrideColor: colors.error,
                               showDivider: false,
-                              onTap: () {},
+                              onTap: () async {
+                                final confirm = await SmartDialogs.showConfirmation(
+                                  title: 'Delete Account',
+                                  message: 'This will deactivate your account. Continue?',
+                                  buttonText: 'Delete',
+                                  buttonColor: colors.error,
+                                );
+                                if (confirm == true) {
+                                  await controller.handleDeleteAccount(
+                                    onSuccess: () {
+                                      if (context.mounted) {
+                                        context.go(RouteNames.login);
+                                      }
+                                    },
+                                  );
+                                }
+                              },
                             ),
                           ],
                         ),
