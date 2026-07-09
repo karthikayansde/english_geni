@@ -104,6 +104,7 @@ class _MyAppState extends State<MyApp> {
 
   void _handleUri(Uri uri) {
     final path = uri.toString();
+    print("path: $path");
     if (path.isNotEmpty) {
       AppRouter.router.push(
         Uri(
