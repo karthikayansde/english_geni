@@ -1,6 +1,7 @@
 import 'package:english_geni/core/services/network_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:get/get.dart';
 import '../../core/constants/app_dimensions.dart';
 import '../../core/constants/app_assets.dart';
 import '../../shared/widgets/scaffold_wrapper.dart';
@@ -8,6 +9,8 @@ import 'home_tab.dart';
 import 'practice_tab.dart';
 import 'progress_tab.dart';
 import 'profile_tab.dart';
+import 'profile_controller.dart';
+import 'performance_analytics_controller.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -19,25 +22,17 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _currentIndex = 0;
   final PageController _pageController = PageController();
-  double _pageOffset = 0.0;
 
   @override
   void initState() {
     super.initState();
-    _pageController.addListener(_onPageScroll);
-  }
-
-  void _onPageScroll() {
-    if (_pageController.hasClients) {
-      setState(() {
-        _pageOffset = _pageController.page ?? 0.0;
-      });
-    }
+    // Pre-initialize controllers to eliminate initialization lag during swipe transitions
+    Get.put(ProfileController(), permanent: true);
+    Get.put(PerformanceAnalyticsController(), permanent: true);
   }
 
   @override
   void dispose() {
-    _pageController.removeListener(_onPageScroll);
     _pageController.dispose();
     super.dispose();
   }
@@ -114,30 +109,36 @@ class _HomeScreenState extends State<HomeScreen> {
         children: [
           // Background sliding white circle indicator
           Positioned.fill(
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                final width = constraints.maxWidth;
-                const spacing = AppDimensions.xs;
-                final slotWidth = (width - (3 * spacing)) / 4;
-                const circleWidth = 67.0;
-                final leftPadding = (slotWidth - circleWidth) / 2;
-                final leftPos = leftPadding + (_pageOffset * (slotWidth + spacing));
+            child: AnimatedBuilder(
+              animation: _pageController,
+              builder: (context, child) {
+                final pageOffset = _pageController.hasClients ? (_pageController.page ?? 0.0) : 0.0;
+                return LayoutBuilder(
+                  builder: (context, constraints) {
+                    final width = constraints.maxWidth;
+                    const spacing = AppDimensions.xs;
+                    final slotWidth = (width - (3 * spacing)) / 4;
+                    const circleWidth = 67.0;
+                    final leftPadding = (slotWidth - circleWidth) / 2;
+                    final leftPos = leftPadding + (pageOffset * (slotWidth + spacing));
 
-                return Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    Positioned(
-                      left: leftPos,
-                      child: Container(
-                        width: circleWidth,
-                        height: circleWidth,
-                        decoration: BoxDecoration(
-                          color: circleColor,
-                          shape: BoxShape.circle,
+                    return Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        Positioned(
+                          left: leftPos,
+                          child: Container(
+                            width: circleWidth,
+                            height: circleWidth,
+                            decoration: BoxDecoration(
+                              color: circleColor,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
                         ),
-                      ),
-                    ),
-                  ],
+                      ],
+                    );
+                  },
                 );
               },
             ),

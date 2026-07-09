@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../core/constants/app_dimensions.dart';
+import '../../core/constants/practice_card_data.dart';
+import '../../core/constants/practice_category.dart';
 import '../../core/theme/app_color_schemes.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../shared/widgets/scaffold_wrapper.dart';
@@ -13,33 +15,10 @@ class PracticeTab extends StatefulWidget {
 }
 
 class _PracticeTabState extends State<PracticeTab> {
-  String _selectedCategory = 'All';
+  PracticeCategory? _selectedCategory; // null represents 'All'
 
-  // Category options
-  final List<String> _categories = ['All', 'Read', 'Write', 'Listen', 'Speak'];
-
-  // Mock list of 25 practice cards with simplified fields
-  final List<Map<String, dynamic>> _cards = [
-    {
-      'name': 'English video with interactive subtitles',
-      'category': 'Listen',
-      'desc': 'Watch English videos and tap any word in the subtitles to see its definition instantly.',
-      'lastUsed': 'Just now',
-      'duration': '5m',
-      'tags': ['Listen', 'Subtitles'],
-      'emoji': '🎥',
-    },
-    // Read Category (6 items)
-    {
-      'name': 'Speed Reading',
-      'category': 'Read',
-      'desc': 'Train your eyes to scan text and summarize chapters faster.',
-      'lastUsed': '2 days ago',
-      'duration': '12m',
-      'tags': ['Read'],
-      'emoji': '📖',
-    },
-  ];
+  // Reference the centralized practice cards
+  final List<Map<String, dynamic>> _cards = PracticeCardData.cards;
 
   @override
   Widget build(BuildContext context) {
@@ -47,10 +26,13 @@ class _PracticeTabState extends State<PracticeTab> {
       builder: (context, theme, textStyle, colors) {
         final styles = AppTextStyles(textStyle, colors);
 
-        // Filter cards by selected category
-        final filteredCards = _selectedCategory == 'All'
+        // Filter cards by matching the selected tag enum inside the tags list
+        final filteredCards = _selectedCategory == null
             ? _cards
-            : _cards.where((c) => c['category'] == _selectedCategory).toList();
+            : _cards.where((c) {
+                final cardTags = c['tags'] as List<PracticeCategory>? ?? [];
+                return cardTags.contains(_selectedCategory);
+              }).toList();
 
         // Distribute cards into two columns dynamically
         final List<Widget> leftWidgets = [];
@@ -98,12 +80,12 @@ class _PracticeTabState extends State<PracticeTab> {
                 vertical: 12,
               ),
               child: Row(
-                children: _categories.map((category) {
-                  final isSelected = _selectedCategory == category;
-                  return GestureDetector(
+                children: [
+                  // 'All' Filter Chip
+                  GestureDetector(
                     onTap: () {
                       setState(() {
-                        _selectedCategory = category;
+                        _selectedCategory = null;
                       });
                     },
                     child: AnimatedContainer(
@@ -111,24 +93,56 @@ class _PracticeTabState extends State<PracticeTab> {
                       margin: const EdgeInsets.symmetric(horizontal: 8),
                       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                       decoration: BoxDecoration(
-                        color: isSelected ? colors.primary : colors.surfaceContainerLow,
+                        color: _selectedCategory == null ? colors.primary : colors.surfaceContainerLow,
                         borderRadius: BorderRadius.circular(20),
                         border: Border.all(
-                          color: isSelected ? colors.primary : colors.outlineVariant.withOpacity(0.5),
+                          color: _selectedCategory == null ? colors.primary : colors.outlineVariant.withOpacity(0.5),
                           width: 1,
                         ),
                       ),
                       child: Text(
-                        category,
+                        'All',
                         style: TextStyle(
-                          color: isSelected ? colors.onPrimary : colors.onSurface,
+                          color: _selectedCategory == null ? colors.onPrimary : colors.onSurface,
                           fontWeight: FontWeight.bold,
                           fontSize: 14,
                         ),
                       ),
                     ),
-                  );
-                }).toList(),
+                  ),
+                  // Category Enum Chips
+                  ...PracticeCategory.values.map((category) {
+                    final isSelected = _selectedCategory == category;
+                    return GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          _selectedCategory = category;
+                        });
+                      },
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 200),
+                        margin: const EdgeInsets.symmetric(horizontal: 8),
+                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                        decoration: BoxDecoration(
+                          color: isSelected ? colors.primary : colors.surfaceContainerLow,
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: isSelected ? colors.primary : colors.outlineVariant.withOpacity(0.5),
+                            width: 1,
+                          ),
+                        ),
+                        child: Text(
+                          category.displayName,
+                          style: TextStyle(
+                            color: isSelected ? colors.onPrimary : colors.onSurface,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ),
+                    );
+                  }),
+                ],
               ),
             ),
 

@@ -13,8 +13,8 @@ class ProgressTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Inject GetX Controller
-    final controller = Get.put(PerformanceAnalyticsController());
+    // Retrieve the pre-initialized GetX Controller
+    final controller = Get.find<PerformanceAnalyticsController>();
 
     return ScaffoldWrapper(
       builder: (context, theme, textStyle, colors) {

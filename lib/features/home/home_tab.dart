@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../core/constants/app_dimensions.dart';
 import '../../core/constants/app_assets.dart';
+import '../../core/constants/practice_card_data.dart';
 import '../../core/theme/app_color_schemes.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../shared/widgets/scaffold_wrapper.dart';
@@ -27,26 +28,7 @@ class _HomeTabState extends State<HomeTab> {
   ];
 
   // Matches the PracticeTab cards list
-  final List<Map<String, dynamic>> _practiceCards = [
-    {
-      'name': 'English video with interactive subtitles',
-      'category': 'Listen',
-      'desc': 'Watch English videos and tap any word in the subtitles to see its definition instantly.',
-      'lastUsed': 'Just now',
-      'duration': '5m',
-      'tags': ['Listen', 'Subtitles'],
-      'emoji': '🎥',
-    },
-    {
-      'name': 'Speed Reading',
-      'category': 'Read',
-      'desc': 'Train your eyes to scan text and summarize chapters faster.',
-      'lastUsed': '2 days ago',
-      'duration': '12m',
-      'tags': ['Read'],
-      'emoji': '📖',
-    },
-  ];
+  final List<Map<String, dynamic>> _practiceCards = PracticeCardData.cards;
 
   @override
   Widget build(BuildContext context) {

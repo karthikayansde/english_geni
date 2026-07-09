@@ -25,7 +25,7 @@ class ProfileTab extends StatefulWidget {
 
 class _ProfileTabState extends State<ProfileTab> {
   late FormGroup _form;
-  final controller = Get.put(ProfileController());
+  final controller = Get.find<ProfileController>();
 
   @override
   void initState() {

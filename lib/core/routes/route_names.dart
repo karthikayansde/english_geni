@@ -9,4 +9,5 @@ class RouteNames {
   // Main
   static const String home = '/home';
   static const String videoPlayer = '/video-player';
+  static const String speedReading = '/speed-reading';
 }

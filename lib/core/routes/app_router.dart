@@ -6,6 +6,7 @@ import '../../features/auth/signup_screen.dart';
 import '../../features/auth/forgot_password_screen.dart';
 import '../../features/home/home_screen.dart';
 import '../../features/video_player/video_player_screen.dart';
+import '../../features/speed_reading/speed_reading_screen.dart';
 import '../services/smart_dialogs.dart';
 import '../services/local_storage_service.dart';
 import 'route_names.dart';
@@ -132,6 +133,10 @@ class AppRouter {
           final path = state.uri.queryParameters['path'] ?? (state.extra as String? ?? '');
           return VideoPlayerScreen(videoPath: path);
         },
+      ),
+      GoRoute(
+        path: RouteNames.speedReading,
+        builder: (context, state) => const SpeedReadingScreen(),
       ),
       GoRoute(
         path: RouteNames.home,
