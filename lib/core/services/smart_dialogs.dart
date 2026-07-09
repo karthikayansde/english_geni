@@ -61,15 +61,20 @@ class SmartDialogs {
   }
 
   static DateTime? _lastLoadingBackPress;
+  static BuildContext? _loadingContext;
+  static bool _isLoadingVisible = false;
 
   // Show full-screen loading
   static void showLoading({String message = 'Please wait...'}) {
     if (_context == null) return;
+    if (_isLoadingVisible) return;
+    _isLoadingVisible = true;
 
     showDialog(
       context: _context!,
       barrierDismissible: false, // Prevents closing by tapping outside
       builder: (context) {
+        _loadingContext = context;
         return PopScope(
           canPop: false, // Prevents closing by back button
           onPopInvokedWithResult: (didPop, result) {
@@ -116,12 +121,28 @@ class SmartDialogs {
           ),
         );
       },
-    );
+    ).then((_) {
+      _isLoadingVisible = false;
+      _loadingContext = null;
+    });
   }
 
   static void hideLoading() {
-    if (_context == null) return;
-    Navigator.of(_context!).pop();
+    if (_isLoadingVisible) {
+      _isLoadingVisible = false;
+      if (_loadingContext != null) {
+        Navigator.of(_loadingContext!).pop();
+        _loadingContext = null;
+      } else {
+        // Fallback if context is not yet set (rapid hide)
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (_loadingContext != null) {
+            Navigator.of(_loadingContext!).pop();
+            _loadingContext = null;
+          }
+        });
+      }
+    }
   }
 }
 

@@ -1,12 +1,13 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:file_picker/file_picker.dart' as fp;
+import 'package:get/get.dart';
 import 'package:path/path.dart' as p;
 import 'package:share_plus/share_plus.dart';
 import 'package:open_filex/open_filex.dart';
 
+import 'controllers/video_player_controller.dart';
 import 'models/subtitle_track.dart';
-import 'services/subtitle_service.dart';
+import '../../shared/widgets/smart_form_fields/smart_buttons.dart';
 
 class VideoPlayerScreen extends StatefulWidget {
   final String videoPath;
@@ -17,18 +18,40 @@ class VideoPlayerScreen extends StatefulWidget {
 }
 
 class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTickerProviderStateMixin {
-  final SubtitleService _subtitleService = SubtitleService();
-  String? _currentVideoPath;
-  List<SubtitleTrack> _tracks = [];
-  bool _isLoading = false;
-  bool _isExtracting = false;
+  late final VideoPlayerController _controller;
 
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
 
+  late final Worker _loadingWorker;
+  late final Worker _extractingWorker;
+
+  bool _isValidVideoPath(String? path) {
+    if (path == null || path.trim().isEmpty) return false;
+    final trimmed = path.trim();
+    
+    // Check for the unique long dummy key
+    if (trimmed == 'DEFAULT_EMPTY_DUMMY_PLACEHOLDER_VIDEO_PATH_KEY_987654321_abc_xyz') {
+      return false;
+    }
+    
+    // Valid video paths must be absolute local paths or content URIs
+    if (!trimmed.startsWith('/') && 
+        !trimmed.startsWith('content://') && 
+        !trimmed.startsWith('file://') &&
+        !trimmed.contains(':\\') && 
+        !trimmed.contains(':/')) {
+      return false;
+    }
+    
+    return true;
+  }
+
   @override
   void initState() {
     super.initState();
+    _controller = Get.put(VideoPlayerController());
+
     _animationController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 800),
@@ -38,131 +61,47 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
       curve: Curves.easeInOut,
     );
 
+    // Trigger animation when loading or extracting completes and tracks exist
+    _loadingWorker = ever(_controller.isLoading, (isLoading) {
+      if (mounted && !isLoading && !_controller.isExtracting.value && _controller.tracks.isNotEmpty) {
+        _animationController.forward(from: 0.0);
+      }
+    });
+    _extractingWorker = ever(_controller.isExtracting, (isExtracting) {
+      if (mounted && !isExtracting && !_controller.isLoading.value && _controller.tracks.isNotEmpty) {
+        _animationController.forward(from: 0.0);
+      }
+    });
+
     // If a video path was passed from deep link / external intent, extract immediately
-    if (widget.videoPath.isNotEmpty) {
+    if (_isValidVideoPath(widget.videoPath)) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        _processVideo(widget.videoPath);
+        _controller.processVideo(widget.videoPath);
       });
     }
   }
 
   @override
   void dispose() {
+    _loadingWorker.dispose();
+    _extractingWorker.dispose();
     _animationController.dispose();
+    Get.delete<VideoPlayerController>();
     super.dispose();
-  }
-
-  Future<void> _pickVideo() async {
-    try {
-      final result = await fp.FilePicker.pickFiles(
-        type: fp.FileType.video, // Restrict to only video files
-        allowMultiple: false,
-      );
-
-      print("result: $result");
-      if (result != null && result.files.single.path != null) {
-        _processVideo(result.files.single.path!);
-      }
-    } catch (e) {
-      _showSnackBar("Error picking file: $e", isError: true);
-    }
-  }
-
-  String _getDisplayNameWithoutExtension(String path) {
-    try {
-      final decoded = Uri.decodeFull(path);
-      final uri = Uri.parse(decoded);
-      if (uri.pathSegments.isNotEmpty) {
-        final name = uri.pathSegments.last;
-        return p.basenameWithoutExtension(name);
-      }
-    } catch (e) {
-      print("Error extracting name from path: $e");
-    }
-    return p.basenameWithoutExtension(path);
-  }
-
-  String _getDisplayName(String path) {
-    try {
-      final decoded = Uri.decodeFull(path);
-      final uri = Uri.parse(decoded);
-      if (uri.pathSegments.isNotEmpty) {
-        return uri.pathSegments.last;
-      }
-    } catch (e) {
-      print("Error extracting name from path: $e");
-    }
-    return p.basename(path);
-  }
-
-  Future<void> _processVideo(String path) async {
-    setState(() {
-      _isLoading = true;
-      _tracks = [];
-      _currentVideoPath = path;
-    });
-
-    try {
-      final displayNameWithoutExtension = _getDisplayNameWithoutExtension(path);
-
-      final tracks = await _subtitleService.getSubtitleTracks(path);
-      setState(() {
-        _tracks = tracks;
-      });
-
-      if (tracks.isNotEmpty) {
-        setState(() => _isExtracting = true);
-        final extracted = await _subtitleService.extractAllSubtitles(
-          path,
-          tracks,
-          customFileName: displayNameWithoutExtension,
-        );
-        setState(() {
-          _tracks = extracted;
-        });
-      }
-      _animationController.forward(from: 0.0);
-    } catch (e) {
-      _showSnackBar("Error processing video: $e", isError: true);
-    } finally {
-      setState(() {
-        _isLoading = false;
-        _isExtracting = false;
-      });
-    }
-  }
-
-  void _showSnackBar(String message, {bool isError = false}) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: isError ? Colors.redAccent : Colors.greenAccent[700],
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      ),
-    );
   }
 
   @override
   Widget build(BuildContext context) {
-    // Determine screen content
-    Widget bodyContent;
-    if (_isLoading || _isExtracting) {
-      bodyContent = _buildLoadingState();
-    } else if (_currentVideoPath == null || _currentVideoPath!.isEmpty) {
-      bodyContent = _buildEmptyState();
-    } else {
-      bodyContent = _buildTrackList();
-    }
-
+    final theme = Theme.of(context);
     return Scaffold(
-      backgroundColor: const Color(0xFF0F0F16), // Premium deep dark color
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        title: const Text(
+        title: Text(
           "SubSplitter",
           style: TextStyle(
             fontWeight: FontWeight.bold,
             letterSpacing: -0.5,
+            color: theme.colorScheme.onSurface,
           ),
         ),
         elevation: 0,
@@ -174,49 +113,63 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
               )
             : null,
         actions: [
-          if (_currentVideoPath != null && !_isLoading && !_isExtracting)
-            IconButton(
-              icon: const Icon(Icons.video_collection_outlined),
-              onPressed: _pickVideo,
-              tooltip: "Change Video",
-            ),
+          Obx(() {
+            final hasVideo = _isValidVideoPath(_controller.currentVideoPath.value);
+            final active = !_controller.isLoading.value && !_controller.isExtracting.value;
+            if (hasVideo && active) {
+              return IconButton(
+                icon: const Icon(Icons.video_collection_outlined),
+                onPressed: _controller.pickVideo,
+                tooltip: "Change Video",
+              );
+            }
+            return const SizedBox.shrink();
+          }),
         ],
       ),
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-          child: bodyContent,
-        ),
+      body: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+        child: Obx(() {
+          if (_controller.isLoading.value || _controller.isExtracting.value) {
+            return _buildLoadingState();
+          } else if (!_isValidVideoPath(_controller.currentVideoPath.value)) {
+            return _buildEmptyState();
+          } else {
+            return _buildTrackList();
+          }
+        }),
       ),
     );
   }
 
   Widget _buildLoadingState() {
+    final theme = Theme.of(context);
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const SizedBox(
+          SizedBox(
             width: 60,
             height: 60,
             child: CircularProgressIndicator(
               strokeWidth: 4,
-              valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF6366F1)),
+              valueColor: AlwaysStoppedAnimation<Color>(theme.colorScheme.primary),
             ),
           ),
           const SizedBox(height: 24),
           Text(
-            _isLoading ? "Probing video file..." : "Extracting subtitle tracks...",
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
+            _controller.isLoading.value ? "Probing video file..." : "Extracting subtitle tracks...",
+            style: theme.textTheme.titleMedium?.copyWith(
+              color: theme.colorScheme.onSurface,
+              fontWeight: FontWeight.bold,
             ),
           ),
           const SizedBox(height: 8),
           Text(
             "This may take a moment depending on the file size",
-            style: TextStyle(color: Colors.grey[500], fontSize: 13),
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
           ),
         ],
       ),
@@ -224,55 +177,50 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
   }
 
   Widget _buildEmptyState() {
+    final theme = Theme.of(context);
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Container(
-            padding: const EdgeInsets.all(32),
+            padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: const Color(0xFF6366F1).withOpacity(0.1),
+              border: Border.all(color: theme.colorScheme.onSurface,width: 2,),
               shape: BoxShape.circle,
             ),
-            child: const Icon(
-              Icons.movie_filter_outlined,
-              size: 80,
-              color: Color(0xFF6366F1),
+            child: const Text(
+              '🎥',
+              style: TextStyle(
+                fontSize: 64,
+              ),
             ),
           ),
           const SizedBox(height: 24),
-          const Text(
-            "No Video Selected",
-            style: TextStyle(
-              fontSize: 22,
+          Text(
+            "English video with interactive subtitles",
+            textAlign: TextAlign.center,
+            style: theme.textTheme.headlineSmall?.copyWith(
               fontWeight: FontWeight.bold,
-              color: Colors.white,
+              color: theme.colorScheme.onSurface,
             ),
           ),
           const SizedBox(height: 8),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 32.0),
             child: Text(
-              "Select a video file to extract and preview its subtitle tracks.",
+              "Watch English videos and tap any word in the subtitles to see its definition instantly.",
               textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.grey[400], fontSize: 14),
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
             ),
           ),
           const SizedBox(height: 32),
-          ElevatedButton.icon(
-            onPressed: _pickVideo,
-            icon: const Icon(Icons.add_rounded, size: 24),
-            label: const Text(
-              "Select Video File",
-              style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
-            ),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF6366F1),
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-              elevation: 4,
-            ),
+          SmartPrimaryButton(
+            label: "Open Video",
+            onPressed: _controller.pickVideo,
+            icon: Icons.add_rounded,
+            width: 220,
           ),
         ],
       ),
@@ -280,7 +228,8 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
   }
 
   Widget _buildTrackList() {
-    if (_tracks.isEmpty) {
+    final theme = Theme.of(context);
+    if (_controller.tracks.isEmpty) {
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -294,26 +243,26 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
               child: const Icon(Icons.subtitles_off_rounded, size: 64, color: Colors.orangeAccent),
             ),
             const SizedBox(height: 20),
-            const Text(
+            Text(
               "No Subtitles Found",
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: theme.colorScheme.onSurface),
             ),
             const SizedBox(height: 8),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 32.0),
               child: Text(
                 "This video file doesn't seem to contain any extractable subtitle tracks.",
-                style: TextStyle(color: Colors.grey[400], height: 1.4),
+                style: TextStyle(color: theme.colorScheme.onSurfaceVariant, height: 1.4),
                 textAlign: TextAlign.center,
               ),
             ),
             const SizedBox(height: 24),
             TextButton.icon(
-              onPressed: _pickVideo,
+              onPressed: _controller.pickVideo,
               icon: const Icon(Icons.refresh_rounded),
               label: const Text("Try Another File"),
               style: TextButton.styleFrom(
-                foregroundColor: const Color(0xFF6366F1),
+                foregroundColor: theme.colorScheme.primary,
               ),
             ),
           ],
@@ -321,7 +270,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
       );
     }
 
-    final String baseName = _getDisplayName(_currentVideoPath!);
+    final String baseName = _controller.getDisplayName(_controller.currentVideoPath.value!);
 
     return FadeTransition(
       opacity: _fadeAnimation,
@@ -332,13 +281,13 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.03),
+              color: theme.colorScheme.surfaceContainerLow,
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: Colors.white.withOpacity(0.06)),
+              border: Border.all(color: theme.colorScheme.outline.withOpacity(0.12)),
             ),
             child: Row(
               children: [
-                const Icon(Icons.video_file_outlined, size: 32, color: Color(0xFF6366F1)),
+                Icon(Icons.video_file_outlined, size: 32, color: theme.colorScheme.primary),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(
@@ -348,16 +297,16 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
                         baseName,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontWeight: FontWeight.bold,
-                          color: Colors.white,
+                          color: theme.colorScheme.onSurface,
                           fontSize: 14,
                         ),
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        "Extracted ${_tracks.length} subtitle track(s)",
-                        style: TextStyle(color: Colors.grey[400], fontSize: 12),
+                        "Extracted ${_controller.tracks.length} subtitle track(s)",
+                        style: TextStyle(color: theme.colorScheme.onSurfaceVariant, fontSize: 12),
                       ),
                     ],
                   ),
@@ -366,16 +315,16 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
             ),
           ),
           const SizedBox(height: 20),
-          const Text(
+          Text(
             "Extracted Tracks",
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: theme.colorScheme.onSurface),
           ),
           const SizedBox(height: 12),
           Expanded(
             child: ListView.separated(
-              itemCount: _tracks.length,
+              itemCount: _controller.tracks.length,
               separatorBuilder: (_, __) => const SizedBox(height: 16),
-              itemBuilder: (context, index) => _buildTrackCard(_tracks[index]),
+              itemBuilder: (context, index) => _buildTrackCard(_controller.tracks[index]),
             ),
           ),
         ],
@@ -384,16 +333,17 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
   }
 
   Widget _buildTrackCard(SubtitleTrack track) {
+    final theme = Theme.of(context);
     final formatExtension = track.outputPath != null
         ? p.extension(track.outputPath!).replaceFirst('.', '').toUpperCase()
         : (track.codec ?? 'SRT').toUpperCase();
 
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.04),
+        color: theme.colorScheme.surfaceContainerLow,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: Colors.white.withOpacity(0.08),
+          color: theme.colorScheme.outline.withOpacity(0.12),
         ),
       ),
       child: Column(
@@ -407,10 +357,10 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF6366F1).withOpacity(0.1),
+                    color: theme.colorScheme.primary.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: const Icon(Icons.subtitles_rounded, color: Color(0xFF6366F1), size: 20),
+                  child: Icon(Icons.subtitles_rounded, color: theme.colorScheme.primary, size: 20),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -419,9 +369,9 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
                     children: [
                       Text(
                         track.title ?? "Track ${track.index}",
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontWeight: FontWeight.bold,
-                          color: Colors.white,
+                          color: theme.colorScheme.onSurface,
                           fontSize: 14,
                         ),
                       ),
@@ -431,7 +381,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
                           if (track.language != null) "Language: ${track.language!.toUpperCase()}",
                           if (track.codec != null) "Format: ${track.codec!.toUpperCase()}",
                         ].join(' · '),
-                        style: TextStyle(fontSize: 11, color: Colors.grey[400]),
+                        style: TextStyle(fontSize: 11, color: theme.colorScheme.onSurfaceVariant),
                       ),
                     ],
                   ),
@@ -440,15 +390,15 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF6366F1).withOpacity(0.15),
+                    color: theme.colorScheme.primary.withOpacity(0.15),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
                     formatExtension,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 10,
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFF818CF8),
+                      color: theme.colorScheme.primary,
                     ),
                   ),
                 ),
@@ -465,7 +415,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
                   Expanded(
                     child: Text(
                       track.outputFileName,
-                      style: TextStyle(fontSize: 11, color: Colors.grey[500]),
+                      style: TextStyle(fontSize: 11, color: theme.colorScheme.onSurfaceVariant),
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
@@ -478,7 +428,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                       minimumSize: Size.zero,
                       tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                      foregroundColor: const Color(0xFF818CF8),
+                      foregroundColor: theme.colorScheme.primary,
                     ),
                   ),
                   const SizedBox(width: 8),
@@ -490,7 +440,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                       minimumSize: Size.zero,
                       tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                      foregroundColor: const Color(0xFF34D399),
+                      foregroundColor: Colors.greenAccent[700],
                     ),
                   ),
                 ],
@@ -499,7 +449,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
             const SizedBox(height: 10),
           ],
 
-          const Divider(height: 1, color: Colors.white12),
+          Divider(height: 1, color: theme.colorScheme.outlineVariant),
 
           // Preview Section
           _buildSubtitlePreview(track),
@@ -509,6 +459,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
   }
 
   Widget _buildSubtitlePreview(SubtitleTrack track) {
+    final theme = Theme.of(context);
     if (track.outputPath == null) {
       return Padding(
         padding: const EdgeInsets.all(16),
@@ -518,7 +469,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
             const SizedBox(width: 8),
             Text(
               "Extraction failed or codec unsupported",
-              style: TextStyle(color: Colors.grey[500], fontSize: 12),
+              style: TextStyle(color: theme.colorScheme.onSurfaceVariant, fontSize: 12),
             ),
           ],
         ),
@@ -529,15 +480,15 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
       future: File(track.outputPath!).readAsString(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Padding(
-            padding: EdgeInsets.all(24),
+          return Padding(
+            padding: const EdgeInsets.all(24),
             child: Center(
               child: SizedBox(
                 width: 20,
                 height: 20,
                 child: CircularProgressIndicator(
                   strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF6366F1)),
+                  valueColor: AlwaysStoppedAnimation<Color>(theme.colorScheme.primary),
                 ),
               ),
             ),
@@ -548,7 +499,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
             padding: const EdgeInsets.all(16),
             child: Text(
               "No subtitle preview available",
-              style: TextStyle(color: Colors.grey[500], fontSize: 12),
+              style: TextStyle(color: theme.colorScheme.onSurfaceVariant, fontSize: 12),
             ),
           );
         }
@@ -559,17 +510,15 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
           margin: const EdgeInsets.fromLTRB(12, 10, 12, 12),
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: Colors.black.withOpacity(0.4),
+            color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.5),
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.white.withOpacity(0.03)),
+            border: Border.all(color: theme.colorScheme.outline.withOpacity(0.1)),
           ),
           child: SingleChildScrollView(
             child: Text(
               snapshot.data!,
-              style: const TextStyle(
-                fontSize: 12,
+              style: theme.textTheme.bodySmall?.copyWith(
                 fontFamily: 'monospace',
-                color: Colors.white70,
                 height: 1.5,
               ),
             ),
