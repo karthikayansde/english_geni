@@ -26,8 +26,11 @@ import 'features/auth/domain/usecases/soft_delete_account_usecase.dart';
 import 'features/auth/domain/usecases/complete_reactivation_usecase.dart';
 import 'core/services/network_controller.dart';
 
+import 'package:media_kit/media_kit.dart';
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  MediaKit.ensureInitialized();
   NetworkDependencyInjection.init();
   await SupabaseConfig.initialize();
 

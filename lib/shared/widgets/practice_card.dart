@@ -46,7 +46,7 @@ class PracticeCard extends StatelessWidget {
       onTap: () {
         final id = card['id'] as String?;
         if (id == 'interactive_subtitles') {
-          context.push('/video-player?path=DEFAULT_EMPTY_DUMMY_PLACEHOLDER_VIDEO_PATH_KEY_987654321_abc_xyz');
+          context.push('/video-player?path=DEFAULT_blueto_EMPTY_DUMMY_PLACEHOLDER_vinothas_VIDEO_PATH_KEY_987654321_abc_sunnitha_xyz');
         } else if (id == 'speed_reading') {
           context.push('/speed-reading');
         }

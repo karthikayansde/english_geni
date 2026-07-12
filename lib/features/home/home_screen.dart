@@ -42,7 +42,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return ScaffoldWrapper(
       builder: (context, theme, textStyle, colors) {
         final isDark = theme.brightness == Brightness.dark;
-
+        // UDeviceHelper.setStatusBarColor(context);
         return Scaffold(
           backgroundColor: theme.scaffoldBackgroundColor,
           body: SafeArea(
